@@ -1,20 +1,55 @@
 ﻿using MarcusRunge.CleanArchitectureModule.Contracts;
-using MarcusRunge.CleanArchitectureModule.Reactive;
 
 namespace MarcusRunge.CleanArchitectureModule.Bases
 {
-    public abstract class CreatableBase<TInterface, TClass, TBase> : ICreateableAware<TInterface>
+    internal abstract class CreatableBase<TInterface, TClass, TBase> : ICreateableAware
         where TClass : CreatableBase<TInterface, TClass, TBase>, TInterface, new()
     {
         private static readonly Lock _sync = new();
         private static Task? _initTask;
         private static TClass? _instance;
-        private readonly OneShotObservable<TInterface> _onCreated = new();
+
+        private readonly Lock _createdLock = new();
+        private EventHandler? _createdHandlers;
+
         private int _isCreated;
-        public static Task? Initialization => Volatile.Read(ref _initTask);
-        public static Exception? InitializationException { get; private set; }
-        public IObservable<TInterface> OnCreated => _onCreated;
+
+        public event EventHandler OnCreated
+        {
+            add
+            {
+                if (value is null) return;
+
+                if (IsCreated)
+                {
+                    value(this, EventArgs.Empty);
+                    return;
+                }
+
+                lock (_createdLock)
+                {
+                    if (!IsCreated)
+                    {
+                        _createdHandlers += value;
+                        return;
+                    }
+                }
+
+                value(this, EventArgs.Empty);
+            }
+            remove
+            {
+                if (value is null) return;
+                lock (_createdLock)
+                {
+                    _createdHandlers -= value;
+                }
+            }
+        }
+
         public bool IsCreated => Volatile.Read(ref _isCreated) == 1;
+        internal static Task? Initialization => Volatile.Read(ref _initTask);
+        internal static Exception? InitializationException { get; private set; }
 
         public static TInterface Create(TBase @base)
         {
@@ -56,9 +91,7 @@ namespace MarcusRunge.CleanArchitectureModule.Bases
                 if (_instance is not null) return;
 
                 var inst = new TClass();
-
                 inst.OnCreate(@base);
-
                 _instance = inst;
             }
         }
@@ -69,15 +102,26 @@ namespace MarcusRunge.CleanArchitectureModule.Bases
             {
                 await OnCreateAsync(@base, CancellationToken.None).ConfigureAwait(false);
 
+                // exakt einmal "created"-Übergang
                 if (Interlocked.Exchange(ref _isCreated, 1) == 0)
                 {
-                    _onCreated.TrySetResult((TInterface)(object)this);
+                    EventHandler? handlers;
+
+                    // Handler "abholen" und löschen => feuert für Früh-Abonnenten genau einmal
+                    lock (_createdLock)
+                    {
+                        handlers = _createdHandlers;
+                        _createdHandlers = null;
+                    }
+
+                    handlers?.Invoke(this, EventArgs.Empty);
                 }
             }
             catch (Exception ex)
             {
                 InitializationException = ex;
-                _onCreated.TrySetError(ex);
+
+                // Wie bisher: bei Fehler kein "created"-Signal (vorher TrySetError im Observable) [2](https://mrsoftwaretechnik-my.sharepoint.com/personal/marcus_runge_mrsoftwaretechnik_onmicrosoft_com/Documents/Microsoft%20Copilot%20Chat-Dateien/CreateableBase.cs)
                 throw;
             }
         }

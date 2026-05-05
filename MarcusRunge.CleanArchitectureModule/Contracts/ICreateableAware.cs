@@ -1,8 +1,8 @@
 ﻿namespace MarcusRunge.CleanArchitectureModule.Contracts
 {
-    public interface ICreateableAware<TInterface>
+    public interface ICreateableAware
     {
         public bool IsCreated { get; }
-        public IObservable<TInterface> OnCreated { get; }
+        public event EventHandler OnCreated;
     }
 }
