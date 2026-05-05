@@ -1,3 +1,4 @@
 <Solution>
   <Project Path="MarcusRunge.CleanArchitectureModule/MarcusRunge.CleanArchitectureModule.csproj" />
+  <Project Path="TestCleanArchitectureModule/TestCleanArchitectureModule.csproj" Id="a8baf54b-9041-411f-acbd-bc4b21a212f5" />
 </Solution>

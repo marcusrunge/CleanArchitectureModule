@@ -1,16 +1,19 @@
-﻿namespace MarcusRunge.CleanArchitectureModule.Bases
+﻿using MarcusRunge.CleanArchitectureModule.Contracts;
+using MarcusRunge.CleanArchitectureModule.Reactive;
+
+namespace MarcusRunge.CleanArchitectureModule.Bases
 {
-    public abstract class CreatableBase<TInterface, TClass, TBase>
+    public abstract class CreatableBase<TInterface, TClass, TBase> : ICreateableAware<TInterface>
         where TClass : CreatableBase<TInterface, TClass, TBase>, TInterface, new()
     {
         private static readonly Lock _sync = new();
         private static Task? _initTask;
         private static TClass? _instance;
-        private readonly OneShotObservable<TInterface> _createdObservable = new();
+        private readonly OneShotObservable<TInterface> _onCreated = new();
         private int _isCreated;
         public static Task? Initialization => Volatile.Read(ref _initTask);
         public static Exception? InitializationException { get; private set; }
-        public IObservable<TInterface> CreatedObservable => _createdObservable;
+        public IObservable<TInterface> OnCreated => _onCreated;
         public bool IsCreated => Volatile.Read(ref _isCreated) == 1;
 
         public static TInterface Create(TBase @base)
@@ -68,13 +71,13 @@
 
                 if (Interlocked.Exchange(ref _isCreated, 1) == 0)
                 {
-                    _createdObservable.TrySetResult((TInterface)(object)this);
+                    _onCreated.TrySetResult((TInterface)(object)this);
                 }
             }
             catch (Exception ex)
             {
                 InitializationException = ex;
-                _createdObservable.TrySetError(ex);
+                _onCreated.TrySetError(ex);
                 throw;
             }
         }

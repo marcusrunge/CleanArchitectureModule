@@ -1,6 +1,6 @@
-﻿namespace MarcusRunge.CleanArchitectureModule.Bases
+﻿namespace MarcusRunge.CleanArchitectureModule.Reactive
 {
-    internal sealed class OneShotObservable<T> : IObservable<T>
+    public sealed class OneShotObservable<T> : IObservable<T>
     {
         private readonly Lock _sync = new();
         private Exception? _error;

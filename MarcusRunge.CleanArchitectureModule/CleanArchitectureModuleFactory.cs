@@ -9,8 +9,10 @@ namespace MarcusRunge.CleanArchitectureModule
 
     public class CleanArchitectureModuleFactory : ICleanArchitectureModuleFactory
     {
-        private static ICleanArchitectureModule? _instance;
+        private static ICleanArchitectureModuleFactory? _factoryInstance;
+        private static ICleanArchitectureModule? _moduleInstance;
+        public static ICleanArchitectureModuleFactory Instance => _factoryInstance ??= new CleanArchitectureModuleFactory();
 
-        public ICleanArchitectureModule Create() => _instance ??= new Implementations.CleanArchitectureModule();
+        public ICleanArchitectureModule Create() => _moduleInstance ??= new Implementations.CleanArchitectureModule();
     }
 }

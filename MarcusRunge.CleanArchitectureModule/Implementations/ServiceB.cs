@@ -6,13 +6,9 @@ namespace MarcusRunge.CleanArchitectureModule.Implementations
     internal class ServiceB : CreatableBase<IServiceB, ServiceB, ICleanArchitectureModuleBase>, IServiceB
     {
         protected override void OnCreate(ICleanArchitectureModuleBase @base)
-        {
-            throw new NotImplementedException();
+        {            
         }
 
-        protected override Task OnCreateAsync(ICleanArchitectureModuleBase @base, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+        protected override Task OnCreateAsync(ICleanArchitectureModuleBase @base, CancellationToken cancellationToken) => Task.CompletedTask;
     }
 }
