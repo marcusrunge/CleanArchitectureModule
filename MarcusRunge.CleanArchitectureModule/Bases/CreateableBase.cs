@@ -9,6 +9,7 @@ namespace MarcusRunge.CleanArchitectureModule.Bases
         // Global synchronization for singleton creation and starting the async initialization exactly once.
         private static readonly Lock _sync = new();
 
+        private static Exception? _initializationException;
         private static Task? _initTask;
         private static TClass? _instance;
 
@@ -78,13 +79,13 @@ namespace MarcusRunge.CleanArchitectureModule.Bases
         }
 
         ///<inheritdoc />
+        public Task? Initialization => Volatile.Read(ref _initTask);
+
+        ///<inheritdoc />
+        public Exception? InitializationException => Volatile.Read(ref _initializationException);
+
+        ///<inheritdoc />
         public bool IsCreated => Volatile.Read(ref _isCreated) == 1;
-
-        // Exposes the one-time async initialization task (if started) for internal observation/diagnostics.
-        internal static Task? Initialization => Volatile.Read(ref _initTask);
-
-        // Captures the initialization failure (if any) for internal observation/diagnostics.
-        internal static Exception? InitializationException { get; private set; }
 
         // Factory method to create/get the singleton instance.
         internal static TInterface Create(TBase @base)
@@ -137,18 +138,7 @@ namespace MarcusRunge.CleanArchitectureModule.Bases
 
                 // Start initialization:
                 // - Store the task so that subsequent calls see it and do not start again.
-                _initTask = _instance.InitializeAsync(@base);
-
-                // Failure tracking:
-                // - Attach a continuation that runs only when the task faults.
-                // - ExecuteSynchronously keeps the continuation lightweight and avoids scheduling overhead.
-                // - TaskScheduler.Default ensures it runs independently of any current synchronization context.
-                _initTask.ContinueWith(
-                    static t => InitializationException = t.Exception?.GetBaseException(),
-                    CancellationToken.None,
-                    TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
-                    TaskScheduler.Default
-                );
+                _initTask = _instance.InitializeAsync(@base);                
             }
         }
 
@@ -224,7 +214,7 @@ namespace MarcusRunge.CleanArchitectureModule.Bases
             {
                 // Failure behavior:
                 // - Record the exception for internal diagnostics and rethrow to fault the initialization task.
-                InitializationException = ex;
+                Volatile.Write(ref _initializationException, ex);
                 throw;
             }
         }
