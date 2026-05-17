@@ -8,7 +8,7 @@ namespace TestCleanArchitectureModule
         [Fact]
         public async Task CreateSuccessfullTestAsync()
         {
-            ICleanArchitectureModule module = CleanArchitectureModuleFactory.Instance.Create();
+            ICleanArchitectureModule module = new CleanArchitectureModuleFactory().Create();
             Assert.NotNull(module);
             Assert.NotNull(module.ServiceA);
             Assert.NotNull(module.ServiceB);
