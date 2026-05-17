@@ -1,11 +1,12 @@
 ﻿using MarcusRunge.CleanArchitectureModule.Bases;
+using Microsoft.Extensions.Logging;
 
 namespace MarcusRunge.CleanArchitectureModule.Implementations
 {
     // Concrete internal module implementation that wires up services for this module instance.
     internal class CleanArchitectureModule : CleanArchitectureModuleBase
     {
-        internal CleanArchitectureModule()
+        internal CleanArchitectureModule(ILogger? logger):base(logger)
         {
             // What happens here:
             // - The module constructor performs "composition" for this module instance by creating and assigning

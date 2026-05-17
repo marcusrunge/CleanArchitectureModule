@@ -1,4 +1,5 @@
 ﻿using MarcusRunge.CleanArchitectureModule.Contracts;
+using Microsoft.Extensions.Logging;
 
 namespace MarcusRunge.CleanArchitectureModule
 {
@@ -24,17 +25,17 @@ namespace MarcusRunge.CleanArchitectureModule
         // Stores the singleton-like module instance created by this factory (lazy-created).
         private static ICleanArchitectureModule? _moduleInstance;
 
-        public static ICleanArchitectureModuleFactory Instance =>
-            /* What happens here:
-               - Lazy initialization of the factory itself using the null-coalescing assignment operator (??=).
-               - If _factoryInstance is null, a new CleanArchitectureModuleFactory is created and cached.
-               - If it is already set, the existing instance is returned.
+        // Logger reference for potential logging; can be null if not provided.
+        private readonly ILogger? _logger;
 
-               Notes on logic/behavior:
-               - This provides a "singleton-like" access pattern without explicit locking.
-               - In highly concurrent scenarios, more than one instance could be constructed transiently,
-                 but the field will end up holding one of them (depending on timing). */
-            _factoryInstance ??= new CleanArchitectureModuleFactory();
+        public CleanArchitectureModuleFactory()
+        {
+        }
+
+        public CleanArchitectureModuleFactory(ILogger? logger)
+        {
+            _logger = logger;
+        }
 
         /// <inheritdoc/>
         public ICleanArchitectureModule Create() =>
@@ -46,6 +47,6 @@ namespace MarcusRunge.CleanArchitectureModule
                Purpose/intent:
                - Ensures consumers get a single shared module instance per process/app-domain-like context,
                  created on first demand. */
-            _moduleInstance ??= new Implementations.CleanArchitectureModule();
+            _moduleInstance ??= new Implementations.CleanArchitectureModule(_logger);
     }
 }
