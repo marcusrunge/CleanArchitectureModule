@@ -6,6 +6,11 @@
     public interface ICleanArchitectureModule
     {
         /// <summary>
+        /// Occurs when an exception is thrown.
+        /// </summary>
+        event Action<Exception> ExceptionThrown;
+
+        /// <summary>
         /// Gets the IServiceA instance exposed by the module, if available.
         /// </summary>
         IServiceA? ServiceA { get; }
