@@ -16,5 +16,11 @@ namespace MarcusRunge.CleanArchitectureModule.Contracts
         /// Gets the IServiceI instance used for internal module operations.
         /// </summary>
         internal IServiceI? ServiceI { get; }
+
+        /// <summary>
+        /// Called when [exception thrown].
+        /// </summary>
+        /// <param name="exception">The exception.</param>
+        internal void OnExceptionThrown(Exception exception);
     }
 }
