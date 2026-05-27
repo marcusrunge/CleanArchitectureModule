@@ -3,8 +3,14 @@ using MarcusRunge.CleanArchitectureModule.Contracts;
 
 namespace TestCleanArchitectureModule
 {
+    /// <summary>
+    /// Contains tests for the CleanArchitectureModuleFactory class, ensuring that it creates instances of ICleanArchitectureModule correctly and that the created services are properly initialized and functional.
+    /// </summary>
     public class CleanArchitectureModuleFactoryTest
     {
+        /// <summary>
+        /// Creates the successfull test asynchronous.
+        /// </summary>
         [Fact]
         public async Task CreateSuccessfullTestAsync()
         {
