@@ -1,4 +1,5 @@
-﻿using MarcusRunge.CleanArchitectureModule;
+﻿using MarcusRunge.Base;
+using MarcusRunge.CleanArchitectureModule;
 using MarcusRunge.CleanArchitectureModule.Contracts;
 
 namespace TestCleanArchitectureModule
