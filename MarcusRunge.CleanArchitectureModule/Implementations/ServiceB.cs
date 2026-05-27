@@ -1,10 +1,10 @@
-﻿using MarcusRunge.CleanArchitectureModule.Bases;
+﻿using MarcusRunge.Base;
 using MarcusRunge.CleanArchitectureModule.Contracts;
 
 namespace MarcusRunge.CleanArchitectureModule.Implementations
 {
     // Concrete IServiceB implementation using the CreatableBase lifecycle (sync create + optional async init).
-    internal class ServiceB : CreatableBase<IServiceB, ServiceB, ICleanArchitectureModuleBase>, IServiceB
+    internal class ServiceB : CreateableBindableBase<IServiceB, ServiceB, ICleanArchitectureModuleBase>, IServiceB
     {
         protected override void OnCreate(ICleanArchitectureModuleBase @base)
         {
