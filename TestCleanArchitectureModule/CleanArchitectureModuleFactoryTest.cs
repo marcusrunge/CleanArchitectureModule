@@ -10,20 +10,29 @@ namespace TestCleanArchitectureModule
     public class CleanArchitectureModuleFactoryTest
     {
         /// <summary>
-        /// Creates the successfull test asynchronous.
+        /// Verifies that the factory creates a module instance and that the exposed services complete their lifecycle correctly.
         /// </summary>
         [Fact]
         public async Task CreateSuccessfullTestAsync()
         {
             ICleanArchitectureModule module = new CleanArchitectureModuleFactory().Create();
+
             Assert.NotNull(module);
             Assert.NotNull(module.ServiceA);
             Assert.NotNull(module.ServiceB);
-            Assert.True(module.ServiceA is ICreateableAware createableAwareA && createableAwareA.IsCreated);
-            var awareB = module.ServiceB as ICreateableAware;
-            Assert.NotNull(awareB);
-            Assert.True(module.ServiceB is ICreateableAware);
-            
+
+            var awareA = Assert.IsType<ICreateableAware>(module.ServiceA, exactMatch: false);
+            var awareB = Assert.IsType<ICreateableAware>(module.ServiceB, exactMatch: false);
+
+            if (awareA.Initialization is not null)
+                await awareA.Initialization;
+
+            if (awareB.Initialization is not null)
+                await awareB.Initialization;
+
+            Assert.True(awareA.IsCreated);
+            Assert.True(awareB.IsCreated);
+
             var tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
             int callCount = 0;
 
@@ -35,16 +44,19 @@ namespace TestCleanArchitectureModule
 
             try
             {
-                awareB!.OnCreated += handler;
+                awareB.OnCreated += handler;
 
-                var completed = await Task.WhenAny(tcs.Task, Task.Delay(TimeSpan.FromSeconds(2), TestContext.Current.CancellationToken));
+                var completed = await Task.WhenAny(
+                    tcs.Task,
+                    Task.Delay(TimeSpan.FromSeconds(2), TestContext.Current.CancellationToken));
+
                 Assert.Same(tcs.Task, completed);
                 Assert.Equal(1, callCount);
                 Assert.True(awareB.IsCreated);
             }
             finally
             {
-                awareB!.OnCreated -= handler;
+                awareB.OnCreated -= handler;
             }
         }
     }
